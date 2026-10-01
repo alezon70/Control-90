@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Control & Enfoque 90</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#0d1117">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Control 90">
+    
+    <!-- Web App Manifest embedded -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"Control y Enfoque 90","short_name":"Control90","start_url":".","display":"standalone","background_color":"#0d1117","theme_color":"#0d1117","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/1283/1283186.png","sizes":"512x512","type":"image/png"}]}'>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-main: #0d1117;
+            --bg-card: #161b22;
+            --bg-card-hover: #21262d;
+            --border: #30363d;
+            --accent-orange: #f0883e;
+            --accent-orange-glow: rgba(240, 136, 62, 0.4);
+            --accent-green: #238636;
+            --accent-green-bright: #3fb950;
+            --accent-yellow: #d29922;
+            --accent-red: #da3633;
+            --accent-blue: #58a6ff;
+            --text-main: #c9d1d9;
+            --text-bright: #f0f6fc;
+            --text-muted: #8b949e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+
+        /* Header Top */
+        header {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .app-title-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .badge-90 {
+            background: linear-gradient(135deg, #1f6beb, #238636);
+            color: #fff;
+            font-weight: 800;
+            font-size: 15px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(35, 134, 54, 0.4);
+        }
+
+        .app-title {
+            color: var(--text-bright);
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .app-date {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: capitalize;
+        }
+
+        .day-counter-pill {
+            background-color: rgba(88, 166, 255, 0.1);
+            border: 1px solid var(--accent-blue);
+            color: var(--accent-blue);
+            font-weight: 700;
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        /* Nav Menú Principal */
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            padding: 18px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .menu-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .menu-card:active {
+            transform: scale(0.95);
+            background-color: var(--bg-card-hover);
+        }
+
+        .menu-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .icon-orange { background-color: rgba(240, 136, 62, 0.15); color: var(--accent-orange); }
+        .icon-green { background-color: rgba(35, 134, 54, 0.15); color: var(--accent-green-bright); }
+        .icon-blue { background-color: rgba(88, 166, 255, 0.15); color: var(--accent-blue); }
+        .icon-purple { background-color: rgba(163, 113, 247, 0.15); color: #a371f7; }
+
+        .menu-title {
+            color: var(--text-bright);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .menu-sub {
+            color: var(--text-muted);
+            font-size: 11px;
+            line-height: 1.3;
+        }
+
+        /* Secciones Modales / Vistas */
+        .view-panel {
+            display: none;
+            padding: 18px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+
+        .view-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-bright);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-close {
+            background: var(--bg-card-hover);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-close:active {
+            transform: scale(0.9);
+            color: var(--text-bright);
+        }
+
+        /* Regla informativa banner */
+        .rule-banner {
+            background-color: rgba(210, 153, 34, 0.1);
+            border: 1px solid rgba(210, 153, 34, 0.3);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 18px;
+            font-size: 12px;
+            color: var(--accent-yellow);
+            line-height: 1.4;
+        }
+
+        /* Cuadrículas de Selección (Cards/Cuadritos) */
+        .section-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin: 16px 0 10px 0;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .grid-cards-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .select-card {
+            background-color: var(--bg-card);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .select-card:active {
+            transform: scale(0.96);
+        }
+
+        .select-card.selected {
+            border-color: var(--accent-orange);
+            background-color: rgba(240, 136, 62, 0.12);
+            box-shadow: 0 0 12px var(--accent-orange-glow);
+        }
+
+        .select-card.selected::after {
+            content: "✓";
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--accent-orange);
+        }
+
+        .card-icon {
+            font-size: 24px;
+        }
+
+        .card-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-bright);
+        }
+
+        .card-desc {
+            font-size: 10px;
+            color: var(--text-muted);
+            line-height: 1.2;
+        }
+
+        /* Botón de Guardado Dinámico */
+        .btn-action-container {
+            margin-top: 24px;
+        }
+
+        .btn-save-dynamic {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 15px;
+            font-weight: 700;
+            color: #8b949e;
+            background-color: #21262d;
+            cursor: not-allowed;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+
+        .btn-save-dynamic.ready {
+            background: linear-gradient(135deg, #f0883e, #d25f15);
+            color: #ffffff;
+            cursor: pointer;
+            opacity: 1;
+            box-shadow: 0 4px 18px var(--accent-orange-glow);
+            animation: pulseBtn 2s infinite;
+        }
+
+        @keyframes pulseBtn {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .btn-save-dynamic.ready:active {
+            transform: scale(0.97);
+        }
+
+        /* Mensaje de Confirmación / Victoria */
+        .victory-msg {
+            display: none;
+            background-color: rgba(63, 185, 80, 0.15);
+            border: 1px solid var(--accent-green-bright);
+            color: var(--accent-green-bright);
+            padding: 14px;
+            border-radius: 10px;
+            margin-top: 16px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 13px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Checkbox Hábitos Positivos */
+        .habit-item {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .habit-item:active {
+            background-color: var(--bg-card-hover);
+        }
+
+        .habit-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .habit-icon {
+            font-size: 22px;
+        }
+
+        .habit-text {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-bright);
+        }
+
+        .habit-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .custom-checkbox {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .custom-checkbox.checked {
+            background-color: var(--accent-green-bright);
+            border-color: var(--accent-green-bright);
+            color: #000;
+            font-weight: bold;
+        }
+
+        /* Evaluación de Cierre Diario */
+        .eval-option {
+            background-color: var(--bg-card);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .eval-option.selected-clean {
+            border-color: var(--accent-green-bright);
+            background-color: rgba(63, 185, 80, 0.12);
+        }
+
+        .eval-option.selected-resist {
+            border-color: var(--accent-yellow);
+            background-color: rgba(210, 153, 34, 0.12);
+        }
+
+        .eval-option.selected-relapse {
+            border-color: var(--accent-red);
+            background-color: rgba(218, 54, 51, 0.12);
+        }
+
+        /* Estadísticas & Malla */
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .stat-box {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 8px;
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-bright);
+        }
+
+        .stat-lbl {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
+
+        .grid-90 {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            background-color: var(--bg-card);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 18px;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            background-color: #21262d;
+            font-size: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .day-cell.current { border: 1.5px solid var(--accent-blue); color: var(--accent-blue); }
+        .day-cell.limpio { background-color: var(--accent-green-bright); color: #000; font-weight: bold; }
+        .day-cell.resistencia { background-color: var(--accent-yellow); color: #000; font-weight: bold; }
+        .day-cell.recaida { background-color: var(--accent-red); color: #fff; font-weight: bold; }
+
+        .chart-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .chart-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin-bottom: 12px;
+        }
+
+        textarea {
+            width: 100%;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            color: var(--text-bright);
+            font-size: 13px;
+            resize: none;
+            height: 80px;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="app-title-box">
+            <span class="badge-90">90</span>
+            <div>
+                <div class="app-title">Control & Enfoque</div>
+                <div class="app-date" id="currentDateStr">Cargando fecha...</div>
+            </div>
+        </div>
+        <div class="day-counter-pill" id="dayCounterHeader">Día 1 de 90</div>
+    </header>
+
+    <main class="grid-menu" id="homeMenu">
+        <div class="menu-card" onclick="openPanel('panelImpulso')">
+            <div class="menu-icon icon-orange">⚡</div>
+            <div class="menu-title">Marcador Impulsos</div>
+            <div class="menu-sub">Regla 2do Vistazo</div>
+        </div>
+
+        <div class="menu-card" onclick="openPanel('panelHabitos')">
+            <div class="menu-icon icon-green">🔥</div>
+            <div class="menu-title">Hábitos Positivos</div>
+            <div class="menu-sub">Ejercicio & IA</div>
+        </div>
+
+        <div class="menu-card" onclick="openPanel('panelRegistro')">
+            <div class="menu-icon icon-blue">📌</div>
+            <div class="menu-title">Registro Diario</div>
+            <div class="menu-sub">Cierre de jornada</div>
+        </div>
+
+        <div class="menu-card" onclick="openPanel('panelStats')">
+            <div class="menu-icon icon-purple">📊</div>
+            <div class="menu-title">Estadísticas</div>
+            <div class="menu-sub">Malla & Horas</div>
+        </div>
+    </main>
+
+    <section class="view-panel" id="panelImpulso">
+        <div class="panel-header">
+            <div class="panel-title">⚡ Marcador de Impulsos</div>
+            <button class="btn-close" onclick="closePanels()">✕</button>
+        </div>
+
+        <div class="rule-banner">
+            <strong>Regla del 2do Vistazo:</strong> Cruzar la mirada es natural. Volver a mirar (segundo vistazo) detona la fantasía. ¡Frena ahí!
+        </div>
+
+        <span class="section-label">1. Tipo de Impulso DETECTADO:</span>
+        <div class="grid-cards">
+            <div class="select-card" onclick="selectImpulseType(this, 'Segundo Vistazo / Sexualización')">
+                <span class="card-icon">👀</span>
+                <span class="card-label">2do Vistazo</span>
+                <span class="card-desc">Mirar 2 veces o sexualizar</span>
+            </div>
+            <div class="select-card" onclick="selectImpulseType(this, 'Impulso en Cama')">
+                <span class="card-icon">🛏️</span>
+                <span class="card-label">En Cama</span>
+                <span class="card-desc">Ganas al acostarse / despertar</span>
+            </div>
+            <div class="select-card" onclick="selectImpulseType(this, 'Búsqueda Activa (Porno/RRSS)')">
+                <span class="card-icon">🌐</span>
+                <span class="card-label">Búsqueda / RRSS</span>
+                <span class="card-desc">Tentación de buscar estímulos</span>
+            </div>
+            <div class="select-card" onclick="selectImpulseType(this, 'Fantasía Mental')">
+                <span class="card-icon">🧠</span>
+                <span class="card-label">Fantasía Mental</span>
+                <span class="card-desc">Pensamiento intrusivo</span>
+            </div>
+        </div>
+
+        <span class="section-label">2. Contexto o Lugar:</span>
+        <div class="grid-cards-3">
+            <div class="select-card" onclick="selectContext(this, 'Cama')">
+                <span class="card-icon">🛏️</span>
+                <span class="card-label">Cama</span>
+            </div>
+            <div class="select-card" onclick="selectContext(this, 'Gym')">
+                <span class="card-icon">🏋️</span>
+                <span class="card-label">Gym</span>
+            </div>
+            <div class="select-card" onclick="selectContext(this, 'Calle')">
+                <span class="card-icon">🏙️</span>
+                <span class="card-label">Calle</span>
+            </div>
+            <div class="select-card" onclick="selectContext(this, 'Mercado')">
+                <span class="card-icon">🛒</span>
+                <span class="card-label">Mercado</span>
+            </div>
+            <div class="select-card" onclick="selectContext(this, 'Trabajo')">
+                <span class="card-icon">💼</span>
+                <span class="card-label">Trabajo</span>
+            </div>
+            <div class="select-card" onclick="selectContext(this, 'RRSS')">
+                <span class="card-icon">📱</span>
+                <span class="card-label">RRSS</span>
+            </div>
+        </div>
+
+        <div class="btn-action-container">
+            <button class="btn-save-dynamic" id="btnRegisterImpulse" onclick="saveImpulseVictory()">
+                Selecciona las opciones...
+            </button>
+        </div>
+
+        <div class="victory-msg" id="victoryBanner">
+            🎉 ¡Victoria registrada a las <span id="victoryTime"></span>! Tu mente sigue bajo tu dominio.
+        </div>
+    </section>
+
+    <section class="view-panel" id="panelHabitos">
+        <div class="panel-header">
+            <div class="panel-title">🔥 Hábitos Positivos Diarios</div>
+            <button class="btn-close" onclick="closePanels()">✕</button>
+        </div>
+
+        <div class="habit-item" onclick="toggleHabit('ejercicio')">
+            <div class="habit-info">
+                <span class="habit-icon">🏃‍♂️</span>
+                <div>
+                    <div class="habit-text">5 Min de Ejercicio Matutino</div>
+                    <div class="habit-sub">Para salir de la cama de inmediato</div>
+                </div>
+            </div>
+            <div class="custom-checkbox" id="chk-ejercicio"></div>
+        </div>
+
+        <div class="habit-item" onclick="toggleHabit('programacion')">
+            <div class="habit-info">
+                <span class="habit-icon">💻</span>
+                <div>
+                    <div class="habit-text">Estudio de Programación con IA</div>
+                    <div class="habit-sub">Enfoca tu energía mental en crear</div>
+                </div>
+            </div>
+            <div class="custom-checkbox" id="chk-programacion"></div>
+        </div>
+    </section>
+
+    <section class="view-panel" id="panelRegistro">
+        <div class="panel-header">
+            <div class="panel-title">📌 Cierre de Jornada Diaria</div>
+            <button class="btn-close" onclick="closePanels()">✕</button>
+        </div>
+
+        <span class="section-label">Calificación Global de Hoy:</span>
+        
+        <div class="eval-option" id="evalClean" onclick="setDayEvaluation('limpio')">
+            <span style="font-size:22px;">🟢</span>
+            <div>
+                <div style="font-weight:700; color:var(--text-bright); font-size:13px;">Día Limpio</div>
+                <div style="font-size:11px; color:var(--text-muted);">Sin porno, sin masturbación y buen foco.</div>
+            </div>
+        </div>
+
+        <div class="eval-option" id="evalResist" onclick="setDayEvaluation('resistencia')">
+            <span style="font-size:22px;">🟡</span>
+            <div>
+                <div style="font-weight:700; color:var(--text-bright); font-size:13px;">Día Con Resistencia</div>
+                <div style="font-size:11px; color:var(--text-muted);">Hubo impulsos fuertes pero contuviste.</div>
+            </div>
+        </div>
+
+        <div class="eval-option" id="evalRelapse" onclick="setDayEvaluation('recaida')">
+            <span style="font-size:22px;">🔴</span>
+            <div>
+                <div style="font-weight:700; color:var(--text-bright); font-size:13px;">Recaída</div>
+                <div style="font-size:11px; color:var(--text-muted);">Cediste al hábito. Aprende y reinicia.</div>
+            </div>
+        </div>
+
+        <span class="section-label">Reflexión / Aprendizaje breve:</span>
+        <textarea id="dailyReflection" placeholder="¿Qué detonante detectaste hoy? (Opcional)"></textarea>
+
+        <div class="btn-action-container">
+            <button class="btn-save-dynamic ready" style="background:var(--accent-blue);" onclick="saveDailyClose()">
+                💾 Guardar Registro Diario
+            </button>
+        </div>
+    </section>
+
+    <section class="view-panel" id="panelStats">
+        <div class="panel-header">
+            <div class="panel-title">📊 Estadísticas y Avance</div>
+            <button class="btn-close" onclick="closePanels()">✕</button>
+        </div>
+
+        <div class="stats-summary">
+            <div class="stat-box">
+                <div class="stat-val" id="statVictorias" style="color:var(--accent-orange);">0</div>
+                <div class="stat-lbl">Victorias</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-val" id="statCleanDays" style="color:var(--accent-green-bright);">0</div>
+                <div class="stat-lbl">Días Limpios</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-val" id="statPorcentaje" style="color:var(--accent-blue);">0%</div>
+                <div class="stat-lbl">Efectividad</div>
+            </div>
+        </div>
+
+        <span class="section-label">Progreso 90 Días:</span>
+        <div class="grid-90" id="grid90Container"></div>
+
+        <div class="chart-card">
+            <div class="chart-title">⏰ Horas Críticas de Impulsos</div>
+            <canvas id="hoursChart" height="150"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-title">📍 Entornos de Mayor Riesgo</div>
+            <canvas id="contextChart" height="150"></canvas>
+        </div>
+    </section>
+
+    <script>
+        // --- ESTADO Y ALMACENAMIENTO ---
+        let selectedImpulseType = null;
+        let selectedImpulseContext = null;
+        let selectedDailyEval = null;
+
+        let appData = JSON.parse(localStorage.getItem('control90_data')) || {
+            startDate: new Date().toISOString().split('T')[0],
+            victories: [], 
+            dailyLogs: {}
+        };
+
+        function saveData() {
+            localStorage.setItem('control90_data', JSON.stringify(appData));
+            updateHeader();
+        }
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateHeader();
+            render90Grid();
+            loadHabitsState();
+        });
+
+        function updateHeader() {
+            const now = new Date();
+            const options = { weekday: 'short', day: 'numeric', month: 'short' };
+            document.getElementById('currentDateStr').innerText = now.toLocaleDateString('es-ES', options);
+
+            // Calcular día actual del reto
+            const start = new Date(appData.startDate);
+            const diffTime = Math.abs(now - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+            document.getElementById('dayCounterHeader').innerText = `Día ${Math.min(diffDays, 90)} de 90`;
+        }
+
+        // --- NAVEGACIÓN DE PANELES ---
+        function openPanel(panelId) {
+            document.getElementById('homeMenu').style.display = 'none';
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            const panel = document.getElementById(panelId);
+            panel.classList.add('active');
+
+            if(panelId === 'panelStats') {
+                renderStats();
+            }
+        }
+
+        function closePanels() {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('homeMenu').style.display = 'grid';
+        }
+
+        // --- MARCADOR DE IMPULSOS ---
+        function selectImpulseType(el, type) {
+            el.parentElement.querySelectorAll('.select-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedImpulseType = type;
+            checkImpulseButtonState();
+        }
+
+        function selectContext(el, ctx) {
+            el.parentElement.querySelectorAll('.select-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedImpulseContext = ctx;
+            checkImpulseButtonState();
+        }
+
+        function checkImpulseButtonState() {
+            const btn = document.getElementById('btnRegisterImpulse');
+            if(selectedImpulseType && selectedImpulseContext) {
+                btn.classList.add('ready');
+                btn.innerHTML = `🛡️ ¡REGISTRAR VICTORIA!`;
+            } else {
+                btn.classList.remove('ready');
+                btn.innerText = `Selecciona opción y lugar...`;
+            }
+        }
+
+        function saveImpulseVictory() {
+            if(!selectedImpulseType || !selectedImpulseContext) return;
+
+            const now = new Date();
+            const victoryRecord = {
+                timestamp: now.toISOString(),
+                hour: now.getHours(),
+                type: selectedImpulseType,
+                context: selectedImpulseContext
+            };
+
+            appData.victories.push(victoryRecord);
+            saveData();
+
+            // Feedback visual
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('victoryTime').innerText = timeStr;
+            document.getElementById('victoryBanner').style.display = 'block';
+
+            // Reset selecciones
+            selectedImpulseType = null;
+            selectedImpulseContext = null;
+            document.querySelectorAll('#panelImpulso .select-card').forEach(c => c.classList.remove('selected'));
+            checkImpulseButtonState();
+
+            setTimeout(() => {
+                document.getElementById('victoryBanner').style.display = 'none';
+            }, 4000);
+        }
+
+        // --- HÁBITOS POSITIVOS ---
+        function toggleHabit(habitKey) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            if(!appData.dailyLogs[todayStr]) {
+                appData.dailyLogs[todayStr] = { eval: null, habits: { ejercicio: false, programacion: false }, note: '' };
+            }
+
+            if(!appData.dailyLogs[todayStr].habits) {
+                appData.dailyLogs[todayStr].habits = { ejercicio: false, programacion: false };
+            }
+
+            const current = appData.dailyLogs[todayStr].habits[habitKey] || false;
+            appData.dailyLogs[todayStr].habits[habitKey] = !current;
+
+            saveData();
+            loadHabitsState();
+        }
+
+        function loadHabitsState() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const habits = appData.dailyLogs[todayStr]?.habits || { ejercicio: false, programacion: false };
+
+            ['ejercicio', 'programacion'].forEach(h => {
+                const el = document.getElementById(`chk-${h}`);
+                if(habits[h]) {
+                    el.classList.add('checked');
+                    el.innerText = '✓';
+                } else {
+                    el.classList.remove('checked');
+                    el.innerText = '';
+                }
+            });
+        }
+
+        // --- CIERRE DIARIO ---
+        function setDayEvaluation(type) {
+            selectedDailyEval = type;
+            document.getElementById('evalClean').className = 'eval-option' + (type==='limpio' ? ' selected-clean' : '');
+            document.getElementById('evalResist').className = 'eval-option' + (type==='resistencia' ? ' selected-resist' : '');
+            document.getElementById('evalRelapse').className = 'eval-option' + (type==='recaida' ? ' selected-relapse' : '');
+        }
+
+        function saveDailyClose() {
+            if(!selectedDailyEval) {
+                alert("Por favor selecciona una evaluación para tu día.");
+                return;
+            }
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            if(!appData.dailyLogs[todayStr]) {
+                appData.dailyLogs[todayStr] = { habits: { ejercicio: false, programacion: false } };
+            }
+
+            appData.dailyLogs[todayStr].eval = selectedDailyEval;
+            appData.dailyLogs[todayStr].note = document.getElementById('dailyReflection').value;
+
+            saveData();
+            render90Grid();
+            alert("¡Registro del día guardado con éxito!");
+            closePanels();
+        }
+
+        // --- ESTADÍSTICAS Y MALLA ---
+        function render90Grid() {
+            const container = document.getElementById('grid90Container');
+            container.innerHTML = '';
+
+            const start = new Date(appData.startDate);
+            const now = new Date();
+            const diffTime = Math.abs(now - start);
+            const currentDayNum = Math.min(Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1, 90);
+
+            for(let i = 1; i <= 90; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'day-cell';
+                cell.innerText = i;
+
+                // Calcular fecha para el día i
+                const cellDate = new Date(start);
+                cellDate.setDate(start.getDate() + (i - 1));
+                const dateStr = cellDate.toISOString().split('T')[0];
+
+                const log = appData.dailyLogs[dateStr];
+                if(log && log.eval) {
+                    cell.classList.add(log.eval);
+                } else if(i === currentDayNum) {
+                    cell.classList.add('current');
+                }
+
+                container.appendChild(cell);
+            }
+        }
+
+        let hoursChartInstance = null;
+        let contextChartInstance = null;
+
+        function renderStats() {
+            document.getElementById('statVictorias').innerText = appData.victories.length;
+
+            const days = Object.values(appData.dailyLogs);
+            const cleanCount = days.filter(d => d.eval === 'limpio' || d.eval === 'resistencia').length;
+            document.getElementById('statCleanDays').innerText = cleanCount;
+
+            const totalEvaluated = days.filter(d => d.eval).length || 1;
+            const pct = Math.round((cleanCount / totalEvaluated) * 100);
+            document.getElementById('statPorcentaje').innerText = `${pct}%`;
+
+            render90Grid();
+
+            // Chart de Horas Críticas
+            const hoursData = new Array(24).fill(0);
+            appData.victories.forEach(v => {
+                if(v.hour !== undefined) hoursData[v.hour]++;
+            });
+
+            if(hoursChartInstance) hoursChartInstance.destroy();
+            const ctxH = document.getElementById('hoursChart').getContext('2d');
+            hoursChartInstance = new Chart(ctxH, {
+                type: 'bar',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `${i}h`),
+                    datasets: [{
+                        label: 'Impulsos',
+                        data: hoursData,
+                        backgroundColor: '#f0883e',
+                        borderRadius: 4
+                    }]
+                },
+                options: { 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        x: { ticks: { color: '#8b949e', font: { size: 9 } } },
+                        y: { beginAtZero: true, ticks: { color: '#8b949e', stepSize: 1 } } 
+                    } 
+                }
+            });
+
+            // Chart de Contexto/Lugar
+            const ctxCounts = {};
+            appData.victories.forEach(v => {
+                if(v.context) ctxCounts[v.context] = (ctxCounts[v.context] || 0) + 1;
+            });
+
+            const ctxLabels = Object.keys(ctxCounts).length ? Object.keys(ctxCounts) : ['Sin datos'];
+            const ctxValues = Object.keys(ctxCounts).length ? Object.values(ctxCounts) : [1];
+
+            if(contextChartInstance) contextChartInstance.destroy();
+            const ctxC = document.getElementById('contextChart').getContext('2d');
+            contextChartInstance = new Chart(ctxC, {
+                type: 'doughnut',
+                data: {
+                    labels: ctxLabels,
+                    datasets: [{
+                        data: ctxValues,
+                        backgroundColor: ['#58a6ff', '#238636', '#f0883e', '#d29922', '#a371f7', '#da3633'],
+                        borderWidth: 2,
+                        borderColor: '#161b22'
+                    }]
+                },
+                options: { 
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom', 
+                            labels: { color: '#c9d1d9', font: { size: 11 }, padding: 12 } 
+                        } 
+                    } 
+                }
+            });
+        }
+    </script>
+</body>
+</html>
